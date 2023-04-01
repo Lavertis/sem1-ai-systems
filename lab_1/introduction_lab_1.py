@@ -11,8 +11,6 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-PLOT_MODEL = True
-
 data = load_iris()
 y = data.target
 x = data.data
@@ -29,8 +27,7 @@ learning_rate = 0.0001
 model.compile(optimizer=Adam(learning_rate), loss=CategoricalCrossentropy(), metrics=['accuracy'])
 
 model.summary()
-if PLOT_MODEL:
-    plot_model(model, to_file="my_model.png")
+plot_model(model, to_file="my_model.png")
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 scaler = StandardScaler()
@@ -38,7 +35,7 @@ x_train = scaler.fit_transform(x_train)
 x_test = scaler.transform(x_test)
 history = model.fit(x_train, y_train, batch_size=15, epochs=100, validation_data=(x_test, y_test), verbose=2)
 
-historia = history.history
+historia = model.history.history
 floss_train = historia['loss']
 floss_test = historia['val_loss']
 acc_train = historia['accuracy']
