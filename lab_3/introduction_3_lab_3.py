@@ -37,7 +37,7 @@ def add_inseption_module(input_tensor_):
         output_tensor_ = input_tensor_
         for layer_ in path:
             output_tensor_ = layer_(output_tensor_)
-            for_concat.append(output_tensor_)
+        for_concat.append(output_tensor_)
 
     return concatenate(for_concat)
 
