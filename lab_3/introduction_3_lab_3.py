@@ -5,7 +5,9 @@ from keras.layers import Dense, Conv2D, MaxPooling2D, GlobalAveragePooling2D, In
 from keras.layers import concatenate
 from keras.losses import CategoricalCrossentropy
 from keras.models import Model
+from keras.optimizers import Adam
 from keras.utils import plot_model
+from sklearn.metrics import f1_score, confusion_matrix
 
 
 # Branching model using the functional API
@@ -43,6 +45,11 @@ def add_inseption_module(input_tensor_):
 data = mnist.load_data()
 x_train, y_train = data[0][0], data[0][1]
 x_test, y_test = data[1][0], data[1][1]
+
+# Reduce the size of the dataset
+x_train, y_train = x_train[:10000], y_train[:10000]
+x_test, y_test = x_test[:1000], y_test[:1000]
+
 x_train = np.expand_dims(x_train, axis=-1)
 x_test = np.expand_dims(x_test, axis=-1)
 y_train = pd.get_dummies(pd.Categorical(y_train)).values
@@ -57,5 +64,17 @@ for i in range(insept_module_cnt):
 output_tensor = GlobalAveragePooling2D()(output_tensor)
 output_tensor = Dense(class_cnt, activation='softmax')(output_tensor)
 ANN = Model(inputs=input_tensor, outputs=output_tensor)
-ANN.compile(loss=CategoricalCrossentropy(), metrics='accuracy', optimizer='adam')
+ANN.compile(loss=CategoricalCrossentropy(), metrics='accuracy', optimizer=Adam())
 plot_model(ANN, show_shapes=True)
+
+ANN.fit(x_train, y_train, epochs=3, batch_size=128, validation_data=(x_test, y_test))
+y_pred = ANN.predict(x_test)
+y_pred = np.argmax(y_pred, axis=1)
+y_test = np.argmax(y_test, axis=1)
+score_f1 = f1_score(y_test, y_pred, average='macro')
+score_accuracy = np.sum(y_pred == y_test) / y_test.shape[0]
+conf_matrix = confusion_matrix(y_test, y_pred)
+print('F1 score: ', score_f1)
+print('Accuracy: ', score_accuracy)
+print('Confusion matrix:')
+print(conf_matrix)

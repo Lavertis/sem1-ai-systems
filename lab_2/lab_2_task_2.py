@@ -4,7 +4,7 @@ from keras.datasets import cifar10
 from keras.losses import SparseCategoricalCrossentropy
 from keras.optimizers import Adam
 from matplotlib import pyplot as plt
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import f1_score, accuracy_score, confusion_matrix
 
 (x_train, y_train), (x_test, y_test) = cifar10.load_data()
 # x_train, y_train = x_train[:3000], y_train[:3000]
@@ -56,5 +56,8 @@ y_pred = model.predict(x_test)
 y_pred = np.argmax(y_pred, axis=1)
 score_f1 = f1_score(y_test, y_pred, average='macro')
 score_accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
 print('F1 score: ', score_f1)
 print('Accuracy score: ', score_accuracy)
+print('Confusion matrix:')
+print(conf_matrix)
