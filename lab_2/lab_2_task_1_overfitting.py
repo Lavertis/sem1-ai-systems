@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import tensorflow as tf
 from keras import layers, Sequential
+from keras.optimizers import Adam
 from keras.utils import image_dataset_from_directory
 from matplotlib import pyplot as plt
 
@@ -88,14 +89,14 @@ model = Sequential([
 
 # Kompilacja modelu
 model.compile(
-    optimizer='adam',
+    optimizer=Adam(),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=['accuracy']
 )
 model.summary()
 
 # Trening konwolucyjnej sieci neuronowej i wizualizacja procesu uczenia
-epochs = 3
+epochs = 5
 history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
 
 acc = history.history['accuracy']

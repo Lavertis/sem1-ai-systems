@@ -3,6 +3,7 @@ import pathlib
 import numpy as np
 import tensorflow as tf
 from keras import Sequential, layers
+from keras.optimizers import Adam
 from keras.utils import image_dataset_from_directory
 from matplotlib import pyplot as plt
 
@@ -65,11 +66,12 @@ model = Sequential([
     layers.Dropout(0.2),
     layers.Flatten(),
     layers.Dense(128, activation='relu'),
-    layers.Dense(num_classes, name="outputs")])
+    layers.Dense(num_classes, name="outputs")
+])
 
 # kompilacja modelu
 model.compile(
-    optimizer='adam',
+    optimizer=Adam(learning_rate=0.001),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
     metrics=['accuracy']
 )
@@ -78,7 +80,7 @@ model.compile(
 model.summary()
 
 # trening
-epochs = 3
+epochs = 5
 history = model.fit(train_ds, validation_data=val_ds, epochs=epochs)
 
 # wizualizacja
