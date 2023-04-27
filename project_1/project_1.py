@@ -13,10 +13,7 @@ tf.random.set_seed(seed)
 
 
 def prepare_data(file_path, look_back=1, validation_split=0.2):
-    # Wczytanie danych z pliku CSV
     df = pd.read_csv(file_path, header=None, names=['Price'])
-
-    # Normalizacja danych w zakresie od 0 do 1
     dataset = np.array(df)
 
     # Utworzenie zestawów danych wejściowych i wyjściowych
@@ -76,8 +73,8 @@ def plot_mean_absolute_percentage_error(history):
 histories = []
 fitted_models = []
 params_grid = {
-    'hidden_layers': [1, 2, 3],
-    'learning_rate': [0.0001, 0.001, 0.01]
+    'hidden_layers': [4, 8, 16],
+    'learning_rate': [0.000001, 0.00001, 0.0001]
 }
 models = [
     create_model(hidden_layers=hl, learning_rate=lr)
@@ -92,18 +89,22 @@ for model in models:
     model_histories = []
     for train, test in KFold(n_splits=5).split(X_train, Y_train):
         model.set_weights(weights)
-        history = model.fit(X_train[train], Y_train[train], epochs=2, batch_size=32, validation_split=0.3, verbose=1)
+        history = model.fit(X_train[train], Y_train[train], epochs=5, batch_size=32, validation_split=0.3, verbose=1)
 
         model_mapes.append(history.history['val_mape'][-1])
         model_histories.append(history)
 
-    mean_mapes.append(np.mean(model_mapes))
+    model_mapes_avg = sum(model_mapes) / len(model_mapes)
+    mean_mapes.append(round(model_mapes_avg, 4))
     histories.append(model_histories)
     fitted_models.append(model)
 
 print("Mean MAPE for each model:")
 for i, mape in enumerate(mean_mapes):
     print(f"Model {i} MAPE: {mape}")
+    print(f"Model {i} params: "
+          f"Hidden layers - {params_grid['hidden_layers'][i // len(params_grid['learning_rate'])]}, "
+          f"Learning rate - {params_grid['learning_rate'][i % len(params_grid['learning_rate'])]}")
 
 best_model_index = np.argmin(mean_mapes)
 best_model = fitted_models[best_model_index]
@@ -121,11 +122,9 @@ plot_mean_absolute_percentage_error(best_history)
 show_prediction_plot_with_true_values(Y_test, best_model.predict(X_test))
 best_model.save('model.h5')
 
+print(f"Best model MAPE: {min(mean_mapes)}")
 print(
-    f"Best model params:\n"
-    f"Hidden layers: {params_grid['hidden_layers'][best_model_index // len(params_grid['learning_rate'])]}\n"
-    f"Learning rate: {params_grid['learning_rate'][best_model_index % len(params_grid['learning_rate'])]}"
+    f"Best model params: "
+    f"Hidden layers - {params_grid['hidden_layers'][best_model_index // len(params_grid['learning_rate'])]}, "
+    f"Learning rate -  {params_grid['learning_rate'][best_model_index % len(params_grid['learning_rate'])]}"
 )
-
-# print(best_model.get_config())
-# print(best_model.optimizer.get_config())
