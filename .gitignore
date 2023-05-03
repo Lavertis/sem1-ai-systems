@@ -161,3 +161,4 @@ cython_debug/
 *.png
 *.h5
 VOC2012
+*.pkl
