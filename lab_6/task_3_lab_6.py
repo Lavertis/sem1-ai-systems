@@ -4,6 +4,7 @@ from pycaret.datasets import get_data
 dataset_list = get_data('index')
 
 dataset = get_data('satellite')
+dataset = dataset.sample(frac=0.2, random_state=42).reset_index(drop=True)
 
 # check the shape of data
 print(dataset.shape)
@@ -28,11 +29,11 @@ rf = create_model('rf')
 print(dt)
 
 print("\n####################\nTuning Decision Tree Model\n####################\n")
-tuned_dt = tune_model(dt)
+tuned_dt = tune_model(dt, fold=10, n_iter=10)
 print("\n####################\nTuning K Nearest Neighbors Model\n####################\n")
-tuned_knn = tune_model(knn)
+tuned_knn = tune_model(knn, fold=10, n_iter=10)
 print("\n####################\nTuning Random Forest Model\n####################\n")
-tuned_rf = tune_model(rf)
+tuned_rf = tune_model(rf, fold=10, n_iter=10)
 
 # tuned model object is stored in the variable 'tuned_dt'.
 print(tuned_dt)
