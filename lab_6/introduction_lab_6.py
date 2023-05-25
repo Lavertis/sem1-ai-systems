@@ -1,11 +1,25 @@
 import pandas as pd
 from pycaret.classification import *
 
+# Dane
 diabetes = pd.read_csv('data/diabetes.csv')
 
-clf = setup(data=diabetes, target='Outcome')
+# Tworzenie obiektu setup
+clf = setup(data=diabetes, target='Outcome', session_id=123)
+
+# Porównanie modeli
 best_model = compare_models()
-model = create_model(best_model)
+
+# Trening modelu
+model = create_model(best_model, fold=5)
+
+# Tuning modelu
+tuned_model = tune_model(model, fold=5)
+
+# Przedstawienie modelu na wykresie
+plot_model(tuned_model, plot='confusion_matrix')
+
+# Predykcja/klasyfikacja
 new_data = pd.DataFrame({
     'Pregnancies': [6, 1, 8],
     'Glucose': [148, 85, 183],
