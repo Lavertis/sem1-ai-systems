@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from keras import Input, Model
-from keras.layers import LSTM, Dense, TimeDistributed, Dropout
-from keras.losses import MeanAbsolutePercentageError
+from keras.layers import LSTM, Dense, TimeDistributed
+from keras.losses import MeanSquaredError
 from keras.optimizers.optimizer_v2.rmsprop import RMSProp
 from keras.utils import plot_model
 from matplotlib import pyplot as plt
@@ -26,7 +26,7 @@ from sklearn.metrics import mean_absolute_percentage_error
 
 
 def make_dataset(dataset, obs_length, pred_offset):
-    x_length = len(dataset) - obs_length - pred_offset
+    x_length = len(dataset) - obs_length - pred_offset + 1
     x_ = np.zeros((x_length, obs_length, 1))
     y_ = np.zeros((x_length, 1))
 
@@ -39,7 +39,7 @@ def make_dataset(dataset, obs_length, pred_offset):
 
 def normalize_array(train, test, axis):
     means = train.mean(axis=axis)
-    stds = train.mean(axis=axis)
+    stds = train.std(axis=axis)
     train = (train - means) / stds
     test = (test - means) / stds
     return train, test
@@ -48,12 +48,12 @@ def normalize_array(train, test, axis):
 LICZBA_LITER_W_IMIENIU = 5
 LICZBA_SPOLGLOSEK_W_IMIENIU = 3
 TRAIN_SIZE = 0.9
-EPOCH_COUNT = 30
+EPOCH_COUNT = 20
 
 data = pd.read_csv('../src/tesla_2020_close.csv', header=None)
 data = data.values
 
-# Make datasets for t+1 and t+4 predictions
+# Make datasets for t + 1 and t + k
 X_t1, y_t1 = make_dataset(data, LICZBA_LITER_W_IMIENIU, 1)
 X_tk, y_tk = make_dataset(data, LICZBA_LITER_W_IMIENIU, LICZBA_SPOLGLOSEK_W_IMIENIU)
 
@@ -77,11 +77,9 @@ def create_model_1(input_shape):
     input_tensor = output_tensor = Input(input_shape)
     output_tensor = TimeDistributed(Dense(32, activation='selu'))(output_tensor)
     output_tensor = TimeDistributed(Dense(32, activation='selu'))(output_tensor)
-    output_tensor = TimeDistributed(Dense(32, activation='selu'))(output_tensor)
-    output_tensor = TimeDistributed(Dense(32, activation='selu'))(output_tensor)
     output_tensor = LSTM(1, activation='selu', return_sequences=False)(output_tensor)
     model_t1 = Model(inputs=input_tensor, outputs=output_tensor)
-    model_t1.compile(optimizer=RMSProp(), loss=MeanAbsolutePercentageError())
+    model_t1.compile(optimizer=RMSProp(), loss=MeanSquaredError())
     return model_t1
 
 
@@ -92,11 +90,10 @@ model_1_tk = create_model_1(X_train_tk.shape[1:])
 def create_model_2(input_shape):
     input_tensor = output_tensor = Input(input_shape)
     output_tensor = TimeDistributed(Dense(32, activation='selu'))(output_tensor)
-    output_tensor = TimeDistributed(Dropout(0.1))(output_tensor)
     output_tensor = LSTM(1, activation='selu', return_sequences=False)(output_tensor)
-    model_t4 = Model(inputs=input_tensor, outputs=output_tensor)
-    model_t4.compile(optimizer=RMSProp(), loss=MeanAbsolutePercentageError())
-    return model_t4
+    model_tk = Model(inputs=input_tensor, outputs=output_tensor)
+    model_tk.compile(optimizer=RMSProp(), loss=MeanSquaredError())
+    return model_tk
 
 
 model2_t1 = create_model_2(X_train_t1.shape[1:])
@@ -114,8 +111,8 @@ history_1_t1 = model_1_t1.fit(x=X_train_t1, y=y_train_t1, batch_size=32, epochs=
 history_1_tk = model_1_tk.fit(x=X_train_tk, y=y_train_tk, batch_size=32, epochs=EPOCH_COUNT,
                               validation_data=(X_test_tk, y_test_tk))
 
-history_2_t1 = model2_t1.fit(x=X_train_t1, y=X_train_t1, batch_size=32, epochs=EPOCH_COUNT,
-                             validation_data=(X_train_t1, X_train_t1))
+history_2_t1 = model2_t1.fit(x=X_train_t1, y=y_train_t1, batch_size=32, epochs=EPOCH_COUNT,
+                             validation_data=(X_test_t1, y_test_t1))
 history_2_tk = model2_tk.fit(x=X_train_tk, y=y_train_tk, batch_size=32, epochs=EPOCH_COUNT,
                              validation_data=(X_test_tk, y_test_tk))
 
