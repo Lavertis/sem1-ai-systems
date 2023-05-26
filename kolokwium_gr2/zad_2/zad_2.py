@@ -168,6 +168,7 @@ print(f'MAPE model GRU t+k: {round(mean_absolute_percentage_error(y_test_tk, y_p
 def get_last_loss(history):
     return history.history['loss'][-1]
 
+
 def get_last_val_loss(history):
     return history.history['val_loss'][-1]
 
