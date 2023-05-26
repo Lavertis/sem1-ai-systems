@@ -19,26 +19,27 @@ from pycaret.datasets import get_data
 # pozostawionych wymiarów.
 
 seed = 920
+FOLD_COUNT = 3
+ITER_COUNT = 5
 
 dataset = get_data('cancer')
 data = dataset.sample(frac=0.99, random_state=seed).reset_index(drop=True)  # (676, 10)
 data_unseen = dataset.drop(data.index).reset_index(drop=True)  # (7, 10)
 
 print("\n####################\nDimensionality Reduction with PCA\n####################\n")
-clf_pca = setup(data=data, target='Class', fold=3, session_id=seed, pca=True, pca_components=0.75)
-# zostały pozostawione 3 składowe główne
+clf_pca = setup(data=data, target='Class', fold=FOLD_COUNT, session_id=seed, pca=True, pca_components=0.75)
 
 print("\n####################\nComparing Models after PCA\n####################\n")
-best_models = compare_models(n_select=2, fold=3)
+best_models = compare_models(n_select=2, fold=FOLD_COUNT)
 
 print("\n####################\nTuning Models after PCA\n####################\n")
-tuned_models = [tune_model(model, fold=3) for model in best_models]
+tuned_models = [tune_model(model, fold=FOLD_COUNT, n_iter=ITER_COUNT) for model in best_models]
 
 print("\n####################\nTuned Model parameters\n####################\n")
 for model in tuned_models:
     print(model)
 
-print("\n####################\nPredictions for Unseen Data after tuning\n####################\n")
+print("\n####################\nPredictions for Unseen Data after Tuning\n####################\n")
 predictions_after_tuning = [predict_model(model, data=data_unseen) for model in tuned_models]
 
 print("\n####################\nFinalizing Models after PCA\n####################\n")
@@ -48,5 +49,5 @@ print("\n####################\nFinalized Model parameters\n####################\
 for model in final_models:
     print(model)
 
-print("\n####################\nPredictions for Unseen Data after PCA\n####################\n")
+print("\n####################\nPredictions for Unseen Data after Finalizing\n####################\n")
 predictions_after_finalizing = [predict_model(model, data=data_unseen) for model in final_models]

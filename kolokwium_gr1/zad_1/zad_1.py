@@ -20,25 +20,28 @@ from pycaret.datasets import get_data
 
 seed = 920
 
+FOLD_COUNT = 3
+ITER_COUNT = 5
+
 dataset = get_data('cancer')
 data = dataset.sample(frac=0.99, random_state=seed).reset_index(drop=True)  # (676, 10)
 data_unseen = dataset.drop(data.index).reset_index(drop=True)  # (7, 10)
 
 print("\n####################\nCreating Model\n####################\n")
-clf = setup(data=data, target='Class', fold=3, session_id=seed)
+clf = setup(data=data, target='Class', fold=FOLD_COUNT, session_id=seed)
 
 print("\n####################\nComparing Models\n####################\n")
-best_models = compare_models(n_select=2, fold=3)
+best_models = compare_models(n_select=2, fold=FOLD_COUNT)
 
 print("\n####################\nTuning Models\n####################\n")
-tuned_1 = tune_model(best_models[0], fold=3)
-tuned_2 = tune_model(best_models[1], fold=3)
+tuned_1 = tune_model(best_models[0], fold=FOLD_COUNT, n_iter=ITER_COUNT)
+tuned_2 = tune_model(best_models[1], fold=FOLD_COUNT, n_iter=ITER_COUNT)
 
 print("\n####################\nTuned Model parameters\n####################\n")
 print(tuned_1)
 print(tuned_2)
 
-print("\n####################\nPredicting Models after tuning\n####################\n")
+print("\n####################\nPredicting Models after Tuning\n####################\n")
 predictions_after_tuning_1 = predict_model(tuned_1, data=data_unseen)
 predictions_after_tuning_2 = predict_model(tuned_2, data=data_unseen)
 
